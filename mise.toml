@@ -1,0 +1,9 @@
+[env]
+XCODE_APP_SCHEME = "MyApp"
+IOS_SIMULATOR_NAME = "iPhone 17"
+TESTFLIGHT_GROUPS = "Internal, External"
+
+[tools]
+"aqua:jdx/usage" = "3.2.1"
+"aqua:jqlang/jq" = "1.8.1"
+"aqua:koalaman/shellcheck" = "0.11.0"
