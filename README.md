@@ -17,6 +17,11 @@ This repository contains common scripts I use for the development of native iOS 
 
 Script dependencies are managed with Mise and defined in [`mise.toml`](mise.toml) file.
 
+- [jdx/usage](https://github.com/jdx/usage): Spec and CLI for defining CLI tools.
+- [jqlang/jq](https://github.com/jqlang/jq): Command-line JSON processor.
+- [koalaman/shellcheck](https://github.com/koalaman/shellcheck): Static analysis tool for shell scripts
+- [ldomaradzki/xcsift](https://github.com/ldomaradzki/xcsift): Swift command-line tool that parses xcodebuild output into token-efficient JSON for coding agents.
+
 ### Usage
 
 Copy Mise Tasks to your project repository and configure environment variables with Mise.
