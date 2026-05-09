@@ -53,6 +53,56 @@ get_derived_data_path() {
   printf '%s/%s\n' "${base_dir_path}" "${dir_path}"
 }
 
+get_result_bundle_path() {
+  local results_dir
+  local filename
+  local component
+  local sanitized
+
+  results_dir="$(get_build_root_dir)/Results"
+  mkdir -p "${results_dir}"
+
+  for component in "$@"; do
+    [[ -n "${component}" ]] || continue
+
+    sanitized="$(sanitize_path_component "${component}")"
+    [[ -n "${sanitized}" ]] || continue
+
+    if [[ -z "${filename}" ]]; then
+      filename="${sanitized}"
+    else
+      filename+="-${sanitized}"
+    fi
+  done
+
+  printf '%s/%s.xcresult\n' "${results_dir}" "${filename}"
+}
+
+get_log_path() {
+  local logs_dir
+  local filename
+  local component
+  local sanitized
+
+  logs_dir="$(get_build_root_dir)/Logs"
+  mkdir -p "${logs_dir}"
+
+  for component in "$@"; do
+    [[ -n "${component}" ]] || continue
+
+    sanitized="$(sanitize_path_component "${component}")"
+    [[ -n "${sanitized}" ]] || continue
+
+    if [[ -z "${filename}" ]]; then
+      filename="${sanitized}"
+    else
+      filename+="-${sanitized}"
+    fi
+  done
+
+  printf '%s/%s.log\n' "${logs_dir}" "${filename}"
+}
+
 get_build_temp_dir() {
   printf '%s/tmp\n' "$(get_build_root_dir)"
 }
