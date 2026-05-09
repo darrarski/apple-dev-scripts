@@ -29,16 +29,28 @@ get_build_root_dir() {
 }
 
 get_derived_data_path() {
-  local path
+  local base_dir_path
+  local dir_path
   local component
+  local sanitized
 
-  path="$(get_build_root_dir)/DerivedData"
+  base_dir_path="$(get_build_root_dir)/DerivedData"
+  mkdir -p "${base_dir_path}"
+
   for component in "$@"; do
     [[ -n "${component}" ]] || continue
-    path+="/$(sanitize_path_component "${component}")"
+
+    sanitized="$(sanitize_path_component "${component}")"
+    [[ -n "${sanitized}" ]] || continue
+
+    if [[ -z "${dir_path}" ]]; then
+      dir_path="${sanitized}"
+    else
+      dir_path+="-${sanitized}"
+    fi
   done
 
-  printf '%s\n' "${path}"
+  printf '%s/%s\n' "${base_dir_path}" "${dir_path}"
 }
 
 get_build_temp_dir() {
