@@ -3,6 +3,11 @@ XCODE_APP_SCHEME = "MyApp"
 IOS_SIMULATOR_NAME = "iPhone 17"
 TESTFLIGHT_GROUPS = "Internal, External"
 
+[settings]
+lockfile = true
+lockfile_platforms = ["macos-arm64"]
+locked_verify_provenance = false
+
 [tools]
 "aqua:jdx/usage" = "3.2.1"
 "aqua:jqlang/jq" = "1.8.1"
