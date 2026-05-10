@@ -22,12 +22,12 @@ app_store_connect_require_env
 scheme="${usage_scheme:-$(get_app_scheme)}"
 archive_path="$(get_archive_path "${usage_platform}" "${scheme}")"
 export_path="$(get_export_path "${usage_platform}" "${scheme}")"
+log_path="$(get_log_path upload_archive "${usage_platform}" "${scheme}")"
 build_temp_dir="$(get_build_temp_dir)"
-mkdir -p "$(dirname "${export_path}")" "${build_temp_dir}"
-rm -rf "${export_path}"
+mkdir -p "$(dirname "${export_path}")" "$(dirname "${log_path}")" "${build_temp_dir}"
+rm -rf "${export_path}" "${log_path}"
 mkdir -p "${export_path}"
 export_options_path="$(mktemp "${build_temp_dir}/upload_archive_export_options.XXXXXX.plist")"
-xcodebuild_output_path="$(mktemp "${build_temp_dir}/upload_archive_xcodebuild_output.XXXXXX.log")"
 
 require_build_scheme "${scheme}"
 bundle_id="$(get_app_bundle_id "${scheme}")"
@@ -68,12 +68,16 @@ cat > "${export_options_path}" <<EOF
 EOF
 
 cleanup() {
-  rm -f "${export_options_path}" "${xcodebuild_output_path}"
+  rm -f "${export_options_path}"
 }
 
 trap cleanup EXIT
 
 system_tool_path="/usr/bin:/bin:/usr/sbin:/sbin"
+
+printf 'archive_path: %s\n' "${archive_path}"
+printf 'export_path: %s\n' "${export_path}"
+printf 'log_path: %s\n' "${log_path}"
 
 set +e
 PATH="${system_tool_path}" \
@@ -86,14 +90,19 @@ xcodebuild \
   -authenticationKeyPath "${APP_STORE_CONNECT_API_PRIVATE_KEY_PATH}" \
   -authenticationKeyID "${APP_STORE_CONNECT_API_KEY_ID}" \
   -authenticationKeyIssuerID "${APP_STORE_CONNECT_API_ISSUER_ID}" \
-  2>&1 | tee "${xcodebuild_output_path}"
-xcodebuild_exit_code=${PIPESTATUS[0]}
+  >"${log_path}" \
+  2>&1
+xcodebuild_exit_code="$?"
 set -e
 
+printf 'command_status:\n'
+printf '  xcodebuild: %s\n' "${xcodebuild_exit_code}"
+
 if (( xcodebuild_exit_code != 0 )); then
-  distribution_logs_path="$(sed -n 's|.*Created bundle at path "\(.*\.xcdistributionlogs\)".*|\1|p' "${xcodebuild_output_path}" | tail -n 1)"
+  distribution_logs_path="$(sed -n 's|.*Created bundle at path "\(.*\.xcdistributionlogs\)".*|\1|p' "${log_path}" | tail -n 1)"
   if [[ -n "${distribution_logs_path}" && -d "${distribution_logs_path}" ]]; then
-    echo "Xcode distribution logs: ${distribution_logs_path}" >&2
+    printf 'distribution_diagnostics:\n' >&2
+    printf '  distribution_logs_path: %s\n' "${distribution_logs_path}" >&2
     distribution_diagnostic_log=""
     for candidate in \
       "${distribution_logs_path}/IDEDistributionPipeline.log" \
@@ -111,10 +120,12 @@ if (( xcodebuild_exit_code != 0 )); then
     fi
 
     if [[ -n "${distribution_diagnostic_log}" && -f "${distribution_diagnostic_log}" ]]; then
-      echo "--- BEGIN Xcode distribution log ---" >&2
-      cat "${distribution_diagnostic_log}" >&2
-      echo "--- END Xcode distribution log ---" >&2
+      printf '  diagnostic_log_path: %s\n' "${distribution_diagnostic_log}" >&2
+      printf '  diagnostic_log_excerpt: |\n' >&2
+      tail -n 80 "${distribution_diagnostic_log}" | sed 's/^/    /' >&2
     fi
+  else
+    print_log_excerpt "${log_path}" >&2
   fi
 
   exit "${xcodebuild_exit_code}"
