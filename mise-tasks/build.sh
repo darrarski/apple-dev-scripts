@@ -57,4 +57,4 @@ NSUnbufferedIO=YES \
 set -e
 status=${PIPESTATUS[0]}
 
-exit $status
+exit "$status"
