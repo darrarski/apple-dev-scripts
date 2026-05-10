@@ -49,10 +49,7 @@ NSUnbufferedIO=YES \
 | tee "$log_path" \
 | mise x -- xcsift \
     --format toon \
-    --warnings \
-    --build-info \
-    --xcbeautify \
-    --exit-on-failure
+    --xcbeautify
 
 pipeline_status=("${PIPESTATUS[@]}")
 set -e
@@ -61,9 +58,10 @@ tee_status="${pipeline_status[1]:-1}"
 xcsift_status="${pipeline_status[2]:-1}"
 status=0
 
-printf 'xcodebuild_status: %s\n' "${xcodebuild_status}"
-printf 'tee_status: %s\n' "${tee_status}"
-printf 'xcsift_status: %s\n' "${xcsift_status}"
+printf 'command_status:\n'
+printf '  xcodebuild: %s\n' "${xcodebuild_status}"
+printf '  tee: %s\n' "${tee_status}"
+printf '  xcsift: %s\n' "${xcsift_status}"
 
 if (( xcodebuild_status != 0 )); then
   status="${xcodebuild_status}"
@@ -71,6 +69,15 @@ elif (( xcsift_status != 0 )); then
   status="${xcsift_status}"
 elif (( tee_status != 0 )); then
   status="${tee_status}"
+elif xcresult_build_failed "${result_bundle_path}"; then
+  status=65
+fi
+
+if (( status != 0 )); then
+  print_xcodebuild_failure_diagnostics \
+    build \
+    "${result_bundle_path}" \
+    "${log_path}"
 fi
 
 exit "$status"
