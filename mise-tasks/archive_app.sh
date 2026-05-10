@@ -31,7 +31,7 @@ app_store_connect_require_env
 destination="$(get_build_destination "${usage_platform}")"
 
 mkdir -p "$(dirname "${archive_path}")" "${derived_data_path}" "$(dirname "${result_bundle_path}")" "$(dirname "${log_path}")"
-rm -rf "${archive_path}" "${derived_data_path}" "${result_bundle_path}" "${log_path}"
+rm -rf "${archive_path}" "${result_bundle_path}" "${log_path}"
 mkdir -p "$(dirname "${archive_path}")" "${derived_data_path}"
 
 printf 'archive_path: %s\n' "${archive_path}"
