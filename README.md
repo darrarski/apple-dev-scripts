@@ -17,6 +17,10 @@ This repository contains common scripts I use for the development of native iOS 
 
 Script dependencies are managed with Mise and defined in [`mise.toml`](mise.toml) file.
 
+- [jdx/usage](https://github.com/jdx/usage): Spec and CLI for defining CLI tools.
+- [jqlang/jq](https://github.com/jqlang/jq): Command-line JSON processor.
+- [koalaman/shellcheck](https://github.com/koalaman/shellcheck): Static analysis tool for shell scripts
+
 ### Usage
 
 Copy Mise Tasks to your project repository and configure environment variables with Mise.
@@ -344,6 +348,15 @@ jobs:
       - name: Run tests (iOS)
         run: mise run test --platform iOS
 
+      - name: Upload logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs
+          path: build/Logs/*
+          if-no-files-found: warn
+          retention-days: 7
+
 ```
 
 </details>
@@ -446,6 +459,15 @@ jobs:
 
       - name: Submit to TestFlight (iOS)
         run: mise run submit_to_testflight --platform iOS
+
+      - name: Upload logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs
+          path: build/Logs/*
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Cleanup App Store Connect API key
         if: ${{ always() }}

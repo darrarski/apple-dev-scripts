@@ -29,16 +29,244 @@ get_build_root_dir() {
 }
 
 get_derived_data_path() {
-  local path
-  local component
+  printf '%s/DerivedData\n' "$(get_build_root_dir)"
+}
 
-  path="$(get_build_root_dir)/DerivedData"
+get_result_bundle_path() {
+  local results_dir
+  local filename
+  local component
+  local sanitized
+
+  results_dir="$(get_build_root_dir)/Results"
+  mkdir -p "${results_dir}"
+
   for component in "$@"; do
     [[ -n "${component}" ]] || continue
-    path+="/$(sanitize_path_component "${component}")"
+
+    sanitized="$(sanitize_path_component "${component}")"
+    [[ -n "${sanitized}" ]] || continue
+
+    if [[ -z "${filename}" ]]; then
+      filename="${sanitized}"
+    else
+      filename+="-${sanitized}"
+    fi
   done
 
-  printf '%s\n' "${path}"
+  printf '%s/%s.xcresult\n' "${results_dir}" "${filename}"
+}
+
+get_log_path() {
+  local logs_dir
+  local filename
+  local component
+  local sanitized
+
+  logs_dir="$(get_build_root_dir)/Logs"
+  mkdir -p "${logs_dir}"
+
+  for component in "$@"; do
+    [[ -n "${component}" ]] || continue
+
+    sanitized="$(sanitize_path_component "${component}")"
+    [[ -n "${sanitized}" ]] || continue
+
+    if [[ -z "${filename}" ]]; then
+      filename="${sanitized}"
+    else
+      filename+="-${sanitized}"
+    fi
+  done
+
+  printf '%s/%s.log\n' "${logs_dir}" "${filename}"
+}
+
+xcresult_build_failed() {
+  local result_bundle_path="$1"
+  local build_results_json
+
+  [[ -d "${result_bundle_path}" ]] || return 1
+
+  if ! build_results_json="$(
+    xcrun xcresulttool get build-results \
+      --path "${result_bundle_path}" \
+      --compact \
+      2>/dev/null
+  )"; then
+    return 1
+  fi
+
+  if printf '%s\n' "${build_results_json}" \
+    | mise x -- jq -e '((.status // "") != "succeeded") or ((.errorCount // 0) > 0)' \
+    >/dev/null
+  then
+    return 0
+  fi
+
+  return 1
+}
+
+xcresult_tests_failed() {
+  local result_bundle_path="$1"
+  local test_results_json
+
+  [[ -d "${result_bundle_path}" ]] || return 1
+
+  if ! test_results_json="$(
+    xcrun xcresulttool get test-results summary \
+      --path "${result_bundle_path}" \
+      --compact \
+      2>/dev/null
+  )"; then
+    return 1
+  fi
+
+  if printf '%s\n' "${test_results_json}" \
+    | mise x -- jq -e '((.result // "") != "Passed") or ((.failedTests // 0) > 0)' \
+    >/dev/null
+  then
+    return 0
+  fi
+
+  return 1
+}
+
+print_xcresult_test_diagnostics() {
+  local result_bundle_path="$1"
+  local test_results_json
+
+  [[ -d "${result_bundle_path}" ]] || return 0
+
+  if ! test_results_json="$(
+    xcrun xcresulttool get test-results summary \
+      --path "${result_bundle_path}" \
+      --compact \
+      2>/dev/null
+  )"; then
+    return 0
+  fi
+
+  printf '%s\n' "${test_results_json}" | mise x -- jq -r '
+    def test_failures:
+      if .testFailures == null then
+        []
+      elif (.testFailures | type) == "array" then
+        .testFailures
+      elif (.testFailures | type) == "object" then
+        [.testFailures]
+      else
+        []
+      end;
+
+    "  test_results:",
+    "    result: \(.result // "unknown")",
+    "    total_tests: \(.totalTestCount // 0)",
+    "    passed_tests: \(.passedTests // 0)",
+    "    failed_tests: \(.failedTests // 0)",
+    "    skipped_tests: \(.skippedTests // 0)",
+    (
+      if (test_failures | length) > 0 then
+        "    failures[\(test_failures | length)]:",
+        (
+          test_failures[] |
+          "      - target: \(.targetName // "unknown")",
+          "        test: \(.testIdentifierString // .testName // "unknown")",
+          (
+            if ((.failureText // "") | length) > 0 then
+              "        message: |",
+              (.failureText | tostring | split("\n")[] | "          \(.)")
+            else
+              empty
+            end
+          )
+        )
+      else
+        empty
+      end
+    )
+  '
+}
+
+print_xcresult_build_diagnostics() {
+  local result_bundle_path="$1"
+  local build_results_json
+
+  [[ -d "${result_bundle_path}" ]] || return 0
+
+  if ! build_results_json="$(
+    xcrun xcresulttool get build-results \
+      --path "${result_bundle_path}" \
+      --compact \
+      2>/dev/null
+  )"; then
+    return 0
+  fi
+
+  printf '%s\n' "${build_results_json}" | mise x -- jq -r '
+    def issue_details:
+      "      - message: \(.message // "unknown")",
+      (
+        if ((.issueType // "") | length) > 0 then
+          "        type: \(.issueType)"
+        else
+          empty
+        end
+      ),
+      (
+        if ((.sourceURL // "") | length) > 0 then
+          "        source: \(.sourceURL)"
+        else
+          empty
+        end
+      );
+
+    "  build_results:",
+    "    status: \(.status // "unknown")",
+    "    errors: \(.errorCount // ((.errors // []) | length))",
+    "    warnings: \(.warningCount // ((.warnings // []) | length))",
+    (
+      if ((.errors // []) | length) > 0 then
+        "    error_details[\((.errors // []) | length)]:",
+        ((.errors // [])[] | issue_details)
+      else
+        empty
+      end
+    ),
+    (
+      if ((.warnings // []) | length) > 0 then
+        "    warning_details[\((.warnings // []) | length)]:",
+        ((.warnings // [])[] | issue_details)
+      else
+        empty
+      end
+    )
+  '
+}
+
+print_log_excerpt() {
+  local log_path="$1"
+
+  [[ -f "${log_path}" ]] || return 0
+
+  printf 'log_excerpt:\n'
+  tail -n 40 "${log_path}" | sed 's/^/  /'
+}
+
+print_xcodebuild_diagnostics() {
+  local action="$1"
+  local result_bundle_path="$2"
+  local log_path="$3"
+
+  if [[ -d "${result_bundle_path}" ]]; then
+    printf 'xcresult_diagnostics:\n'
+    if [[ "${action}" == "test" ]]; then
+      print_xcresult_test_diagnostics "${result_bundle_path}"
+    fi
+    print_xcresult_build_diagnostics "${result_bundle_path}"
+  else
+    print_log_excerpt "${log_path}"
+  fi
 }
 
 get_build_temp_dir() {
