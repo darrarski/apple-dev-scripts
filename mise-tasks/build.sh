@@ -54,7 +54,23 @@ NSUnbufferedIO=YES \
     --xcbeautify \
     --exit-on-failure
 
+pipeline_status=("${PIPESTATUS[@]}")
 set -e
-status=${PIPESTATUS[0]}
+xcodebuild_status="${pipeline_status[0]:-1}"
+tee_status="${pipeline_status[1]:-1}"
+xcsift_status="${pipeline_status[2]:-1}"
+status=0
+
+printf 'xcodebuild_status: %s\n' "${xcodebuild_status}"
+printf 'tee_status: %s\n' "${tee_status}"
+printf 'xcsift_status: %s\n' "${xcsift_status}"
+
+if (( xcodebuild_status != 0 )); then
+  status="${xcodebuild_status}"
+elif (( xcsift_status != 0 )); then
+  status="${xcsift_status}"
+elif (( tee_status != 0 )); then
+  status="${tee_status}"
+fi
 
 exit "$status"
