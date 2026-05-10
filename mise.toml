@@ -12,4 +12,3 @@ locked_verify_provenance = false
 "aqua:jdx/usage" = "3.2.1"
 "aqua:jqlang/jq" = "1.8.1"
 "aqua:koalaman/shellcheck" = "0.11.0"
-"github:ldomaradzki/xcsift" = "1.2.0"

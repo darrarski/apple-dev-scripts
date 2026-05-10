@@ -37,38 +37,25 @@ printf 'log_path: %s\n' "${log_path}"
 
 set +e
 
-NSUnbufferedIO=YES \
-  mise x -- tuist xcodebuild build \
-    -workspace "$workspace_path" \
-    -scheme "$scheme" \
-    -destination "$destination" \
-    -derivedDataPath "$derived_data_path" \
-    -resultBundlePath "$result_bundle_path" \
-    CODE_SIGNING_ALLOWED=NO \
-    2>&1 \
-| tee "$log_path" \
-| mise x -- xcsift \
-    --format toon \
-    --xcbeautify
+mise x -- tuist xcodebuild build \
+  -workspace "$workspace_path" \
+  -scheme "$scheme" \
+  -destination "$destination" \
+  -derivedDataPath "$derived_data_path" \
+  -resultBundlePath "$result_bundle_path" \
+  CODE_SIGNING_ALLOWED=NO \
+  >"$log_path" \
+  2>&1
 
-pipeline_status=("${PIPESTATUS[@]}")
+xcodebuild_status="$?"
 set -e
-xcodebuild_status="${pipeline_status[0]:-1}"
-tee_status="${pipeline_status[1]:-1}"
-xcsift_status="${pipeline_status[2]:-1}"
 status=0
 
 printf 'command_status:\n'
 printf '  xcodebuild: %s\n' "${xcodebuild_status}"
-printf '  tee: %s\n' "${tee_status}"
-printf '  xcsift: %s\n' "${xcsift_status}"
 
 if (( xcodebuild_status != 0 )); then
   status="${xcodebuild_status}"
-elif (( xcsift_status != 0 )); then
-  status="${xcsift_status}"
-elif (( tee_status != 0 )); then
-  status="${tee_status}"
 elif xcresult_build_failed "${result_bundle_path}"; then
   status=65
 fi

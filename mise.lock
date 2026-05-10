@@ -24,12 +24,3 @@ backend = "aqua:koalaman/shellcheck"
 [tools."aqua:koalaman/shellcheck"."platforms.macos-arm64"]
 checksum = "sha256:56affdd8de5527894dca6dc3d7e0a99a873b0f004d7aabc30ae407d3f48b0a79"
 url = "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.darwin.aarch64.tar.xz"
-
-[[tools."github:ldomaradzki/xcsift"]]
-version = "1.2.0"
-backend = "github:ldomaradzki/xcsift"
-
-[tools."github:ldomaradzki/xcsift"."platforms.macos-arm64"]
-checksum = "sha256:11e93bdc74232a03d7676535f9e7f908d3d0a3c3991aa998af80de0e4a208e1b"
-url = "https://github.com/ldomaradzki/xcsift/releases/download/v1.2.0/xcsift-v1.2.0-macos-arm64.tar.gz"
-url_api = "https://api.github.com/repos/ldomaradzki/xcsift/releases/assets/379050209"
