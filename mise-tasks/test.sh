@@ -75,11 +75,9 @@ elif xcresult_build_failed "${result_bundle_path}"; then
   status=65
 fi
 
-if (( status != 0 )); then
-  print_xcodebuild_failure_diagnostics \
-    test \
-    "${result_bundle_path}" \
-    "${log_path}"
-fi
+print_xcodebuild_diagnostics \
+  test \
+  "${result_bundle_path}" \
+  "${log_path}"
 
 exit "$status"

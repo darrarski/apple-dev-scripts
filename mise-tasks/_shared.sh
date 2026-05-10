@@ -260,10 +260,10 @@ print_log_excerpt() {
   [[ -f "${log_path}" ]] || return 0
 
   printf 'log_excerpt:\n'
-  tail -n 80 "${log_path}" | sed 's/^/  /'
+  tail -n 40 "${log_path}" | sed 's/^/  /'
 }
 
-print_xcodebuild_failure_diagnostics() {
+print_xcodebuild_diagnostics() {
   local action="$1"
   local result_bundle_path="$2"
   local log_path="$3"
