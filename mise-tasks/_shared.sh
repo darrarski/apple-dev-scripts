@@ -148,6 +148,17 @@ print_xcresult_test_diagnostics() {
   fi
 
   printf '%s\n' "${test_results_json}" | mise x -- jq -r '
+    def test_failures:
+      if .testFailures == null then
+        []
+      elif (.testFailures | type) == "array" then
+        .testFailures
+      elif (.testFailures | type) == "object" then
+        [.testFailures]
+      else
+        []
+      end;
+
     "  test_results:",
     "    result: \(.result // "unknown")",
     "    total_tests: \(.totalTestCount // 0)",
@@ -155,10 +166,10 @@ print_xcresult_test_diagnostics() {
     "    failed_tests: \(.failedTests // 0)",
     "    skipped_tests: \(.skippedTests // 0)",
     (
-      if ((.testFailures // []) | length) > 0 then
-        "    failures[\((.testFailures // []) | length)]:",
+      if (test_failures | length) > 0 then
+        "    failures[\(test_failures | length)]:",
         (
-          (.testFailures // [])[] |
+          test_failures[] |
           "      - target: \(.targetName // "unknown")",
           "        test: \(.testIdentifierString // .testName // "unknown")",
           (
