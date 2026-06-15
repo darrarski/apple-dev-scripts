@@ -19,16 +19,17 @@ source "${script_dir}/_shared.sh"
 
 scheme="${usage_scheme:-$(get_app_scheme)}"
 workspace_path="$(get_workspace_path)"
-archive_path="$(get_archive_path "${usage_platform}" "${scheme}")"
-derived_data_path="$(get_derived_data_path archive "${usage_platform}" "${scheme}")"
-result_bundle_path="$(get_result_bundle_path archive "${usage_platform}" "${scheme}")"
-log_path="$(get_log_path archive "${usage_platform}" "${scheme}")"
+platform="${usage_platform}"
+archive_path="$(get_archive_path "${platform}" "${scheme}")"
+derived_data_path="$(get_derived_data_path archive "${platform}" "${scheme}")"
+result_bundle_path="$(get_result_bundle_path archive "${platform}" "${scheme}")"
+log_path="$(get_log_path archive "${platform}" "${scheme}")"
 
 require_workspace
 require_build_scheme "${scheme}"
 app_store_connect_require_env
 
-destination="$(get_build_destination "${usage_platform}")"
+destination="$(get_build_destination "${platform}")"
 
 mkdir -p "$(dirname "${archive_path}")" "${derived_data_path}" "$(dirname "${result_bundle_path}")" "$(dirname "${log_path}")"
 rm -rf "${archive_path}" "${result_bundle_path}" "${log_path}"

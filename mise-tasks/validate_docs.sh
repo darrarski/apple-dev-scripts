@@ -15,6 +15,12 @@ docs_files=(
 mise_tasks_doc_file="README.md"
 
 failures=0
+available_tasks="$(mise tasks -l | awk '{print $1}' | sort -u)"
+
+mise_task_exists() {
+  local task="$1"
+  printf '%s\n' "$available_tasks" | grep -Fxq "$task"
+}
 
 echo "Checking internal Markdown links..."
 while IFS= read -r line; do
@@ -43,6 +49,51 @@ while IFS= read -r line; do
   fi
 done < <(grep -nH -E -o '\]\(([^)]+)\)' "${docs_files[@]}" || true)
 
+echo "Checking referenced Mise task commands..."
+while IFS=: read -r file line command; do
+  task=""
+  skip_next_token=false
+  command="${command#mise run}"
+  read -r -a tokens <<< "$command"
+
+  for token in "${tokens[@]}"; do
+    token="${token#[}"
+    token="${token%]}"
+    token="${token%,}"
+    token="${token%.}"
+
+    if [[ "$skip_next_token" == "true" ]]; then
+      skip_next_token=false
+      continue
+    fi
+
+    case "$token" in
+      "" | "--")
+        continue
+        ;;
+      --output | -o)
+        skip_next_token=true
+        continue
+        ;;
+      --*=* | -*)
+        continue
+        ;;
+    esac
+
+    task="$token"
+    break
+  done
+
+  if [[ -z "$task" ]] || [[ "$task" =~ ^\<.*\>$ ]]; then
+    continue
+  fi
+
+  if ! mise_task_exists "$task"; then
+    echo "  [FAIL] $file:$line references unknown Mise task: $task"
+    failures=1
+  fi
+done < <(grep -nH -E -o 'mise run[[:space:]][^`)]+' "${docs_files[@]}" || true)
+
 echo "Checking documented Mise tasks..."
 while IFS= read -r task; do
   [[ -z "$task" ]] && continue
@@ -51,7 +102,7 @@ while IFS= read -r task; do
     echo "  [FAIL] Missing task docs entry in ${mise_tasks_doc_file}: $task"
     failures=1
   fi
-done < <(mise tasks -l | awk '{print $1}' | sort -u)
+done <<< "$available_tasks"
 
 if [[ "$failures" -ne 0 ]]; then
   echo "Documentation validation failed."

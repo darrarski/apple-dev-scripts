@@ -23,8 +23,9 @@ app_store_connect_require_env
 
 root_dir="$(get_root_dir)"
 whattotest_file_path="${root_dir}/TestFlight/WhatToTest.en-US.txt"
+platform="${usage_platform}"
 
-echo "Platform: ${usage_platform}"
+echo "Platform: ${platform}"
 
 version="${usage_version:-$(get_marketing_version)}"
 echo "Marketing version: ${version}"
@@ -35,7 +36,7 @@ echo "Build number: ${build}"
 groups=()
 while IFS= read -r group; do
   [[ -n "${group}" ]] && groups+=("${group}")
-done < <(get_testflight_groups "${usage_platform}")
+done < <(get_testflight_groups "${platform}")
 
 groups_string=$(printf '%s, ' "${groups[@]}")
 groups_string=${groups_string%, }
@@ -53,7 +54,7 @@ fi
 
 echo "App id: ${app_id}"
 
-app_store_platform="$(app_store_connect_platform_name "${usage_platform}")"
+app_store_platform="$(app_store_connect_platform_name "${platform}")"
 
 poll_attempt=0
 poll_retry_sleep=30
@@ -74,14 +75,14 @@ while (( poll_attempt < max_poll_attempts )); do
         break
         ;;
       FAILED|INVALID)
-        echo "Error: ${usage_platform} build ${version} (${build}) entered processing state ${processing_state}." >&2
+        echo "Error: ${platform} build ${version} (${build}) entered processing state ${processing_state}." >&2
         exit 1
         ;;
       *)
-        echo "${usage_platform} build ${version} (${build}) processing state: ${processing_state}"
+        echo "${platform} build ${version} (${build}) processing state: ${processing_state}"
     esac
   else
-    echo "${usage_platform} build ${version} (${build}) was not found in App Store Connect."
+    echo "${platform} build ${version} (${build}) was not found in App Store Connect."
   fi
 
   if (( poll_attempt < max_poll_attempts )); then
@@ -91,12 +92,12 @@ while (( poll_attempt < max_poll_attempts )); do
 done
 
 if [[ -z "${build_id}" ]]; then
-  echo "Error: ${usage_platform} build ${version} (${build}) was not found in App Store Connect." >&2
+  echo "Error: ${platform} build ${version} (${build}) was not found in App Store Connect." >&2
   exit 1
 fi
 
 if [[ "${processing_state}" != "VALID" ]]; then
-  echo "Error: Timed out waiting for ${usage_platform} build ${version} (${build}) to become available." >&2
+  echo "Error: Timed out waiting for ${platform} build ${version} (${build}) to become available." >&2
   exit 1
 fi
 
@@ -213,11 +214,11 @@ for group_name in "${groups[@]}"; do
   )"
 
   if printf '%s\n' "${group_build_ids}" | grep -Fxq "${build_id}"; then
-    echo "Skipping group \"${group_name}\": ${usage_platform} build ${version} (${build}) is already assigned."
+    echo "Skipping group \"${group_name}\": ${platform} build ${version} (${build}) is already assigned."
     continue
   fi
 
-  echo "Will assign ${usage_platform} build ${version} (${build}) to group \"${group_name}\" (${group_kind})."
+  echo "Will assign ${platform} build ${version} (${build}) to group \"${group_name}\" (${group_kind})."
   group_ids_to_submit+=("${group_id}")
   group_names_to_submit+=("${group_name}")
 done
@@ -237,7 +238,7 @@ for group_index in "${!group_ids_to_submit[@]}"; do
     group_kind="external"
   fi
 
-  echo "Assigning ${usage_platform} build ${version} (${build}) to group \"${group_name}\" (${group_kind})..."
+  echo "Assigning ${platform} build ${version} (${build}) to group \"${group_name}\" (${group_kind})..."
 
   app_store_connect_api POST "betaGroups/${group_id}/relationships/builds" \
     --data "$(
@@ -249,7 +250,7 @@ for group_index in "${!group_ids_to_submit[@]}"; do
 done
 
 if (( ${#requested_external_group_names[@]} == 0 )); then
-  echo "${usage_platform} build ${version} (${build}) submitted to the requested TestFlight groups."
+  echo "${platform} build ${version} (${build}) submitted to the requested TestFlight groups."
   exit 0
 fi
 
@@ -264,12 +265,12 @@ beta_app_review_submission_id="$(printf '%s' "${beta_app_review_submission_json}
 
 if [[ -n "${beta_app_review_submission_id}" ]]; then
   beta_review_state="$(printf '%s' "${beta_app_review_submission_json}" | mise x -- jq -r '.data[0].attributes.betaReviewState // empty')"
-  echo "External TestFlight review submission already exists for ${usage_platform} build ${version} (${build}) with state: ${beta_review_state}"
-  echo "${usage_platform} build ${version} (${build}) submitted to the requested TestFlight groups."
+  echo "External TestFlight review submission already exists for ${platform} build ${version} (${build}) with state: ${beta_review_state}"
+  echo "${platform} build ${version} (${build}) submitted to the requested TestFlight groups."
   exit 0
 fi
 
-echo "Submitting ${usage_platform} build ${version} (${build}) for external TestFlight review..."
+echo "Submitting ${platform} build ${version} (${build}) for external TestFlight review..."
 
 app_store_connect_api POST "betaAppReviewSubmissions" \
   --data "$(
@@ -279,5 +280,5 @@ app_store_connect_api POST "betaAppReviewSubmissions" \
   )" \
   >/dev/null
 
-echo "External TestFlight review submission created for ${usage_platform} build ${version} (${build})."
-echo "${usage_platform} build ${version} (${build}) submitted to the requested TestFlight groups."
+echo "External TestFlight review submission created for ${platform} build ${version} (${build})."
+echo "${platform} build ${version} (${build}) submitted to the requested TestFlight groups."

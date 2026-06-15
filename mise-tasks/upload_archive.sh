@@ -20,9 +20,10 @@ source "${script_dir}/_shared.sh"
 app_store_connect_require_env
 
 scheme="${usage_scheme:-$(get_app_scheme)}"
-archive_path="$(get_archive_path "${usage_platform}" "${scheme}")"
-export_path="$(get_export_path "${usage_platform}" "${scheme}")"
-log_path="$(get_log_path upload_archive "${usage_platform}" "${scheme}")"
+platform="${usage_platform}"
+archive_path="$(get_archive_path "${platform}" "${scheme}")"
+export_path="$(get_export_path "${platform}" "${scheme}")"
+log_path="$(get_log_path upload_archive "${platform}" "${scheme}")"
 build_temp_dir="$(get_build_temp_dir)"
 mkdir -p "$(dirname "${export_path}")" "$(dirname "${log_path}")" "${build_temp_dir}"
 rm -rf "${export_path}" "${log_path}"
@@ -37,7 +38,7 @@ app_id="$(app_store_connect_get_app_id "${bundle_id}")"
 team_id="$(get_development_team "${scheme}")"
 
 if [[ ! -d "${archive_path}" ]]; then
-  echo "Error: Archive not found: ${archive_path}. Run: mise run archive_app --scheme ${scheme} --platform ${usage_platform}" >&2
+  echo "Error: Archive not found: ${archive_path}. Run: mise run archive_app --scheme ${scheme} --platform ${platform}" >&2
   exit 1
 fi
 
