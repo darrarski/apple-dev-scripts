@@ -19,13 +19,14 @@ source "${script_dir}/_shared.sh"
 
 workspace_path="$(get_workspace_path)"
 scheme="${usage_scheme:-$(get_workspace_scheme)}"
-derived_data_path="$(get_derived_data_path build "${usage_platform}" "${scheme}")"
-result_bundle_path="$(get_result_bundle_path build "${usage_platform}" "${scheme}")"
-log_path="$(get_log_path build "${usage_platform}" "${scheme}")"
+platform="${usage_platform}"
+derived_data_path="$(get_derived_data_path build "${platform}" "${scheme}")"
+result_bundle_path="$(get_result_bundle_path build "${platform}" "${scheme}")"
+log_path="$(get_log_path build "${platform}" "${scheme}")"
 
 require_workspace
 require_build_scheme "${scheme}"
-destination="$(get_build_destination "${usage_platform}")"
+destination="$(get_build_destination "${platform}")"
 
 mkdir -p "${derived_data_path}" "$(dirname "${result_bundle_path}")" "$(dirname "${log_path}")"
 rm -rf "${result_bundle_path}"

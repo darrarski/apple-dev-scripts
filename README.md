@@ -147,7 +147,7 @@ Source: [`mise-tasks/set_build_number.sh`](mise-tasks/set_build_number.sh)
 
 ### ▶️ Get latest App Store Connect build number
 
-Gets the latest uploaded build number or pending build upload number for the selected platform and current marketing version from App Store Connect.
+Gets the latest uploaded build number or pending build upload number for the selected platform across all marketing versions from App Store Connect.
 
 ```sh-session
 $ mise run get_latest_app_store_build_number --platform <platform>
