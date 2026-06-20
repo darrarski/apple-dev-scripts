@@ -31,6 +31,8 @@ Repository-wide default environment variables are defined in [`mise.toml`](mise.
 
 |Variable|Description|
 |:--|:--|
+|`TUIST_CACHE_CONFIGURATION`|Tuist binary cache build configuration (eg. Debug, Release, etc.).|
+|`TUIST_CACHE_PROFILE`|Tuist binary cache profile (eg. "only-external", or a custom profile defined by Tuist manifest).|
 |`XCODE_APP_SCHEME`|Default app scheme used by deployment-oriented tasks such as `archive_app` when `--scheme` is not provided.|
 |`IOS_SIMULATOR_NAME`|Default iOS simulator device name used by the `test` task.|
 |`TESTFLIGHT_GROUPS`|Comma-separated default TestFlight groups used by `submit_to_testflight` and `deploy`.|
@@ -77,21 +79,21 @@ Uses Tuist to:
 
 Source: [`mise-tasks/generate_workspace.sh`](mise-tasks/generate_workspace.sh)
 
-### ▶️ Warm Dependency Cache
+### ▶️ Warm Cache
 
-Warms Tuist binary cache for external dependencies.
+Warms Tuist binary cache.
 
 ```sh-session
-$ mise run warm_dependency_cache Debug
-$ mise run warm_dependency_cache Debug Release
+$ mise run warm_cache
 ```
 
 |Argument|Description|
 |:--|:--|
-|`<configuration>...`|One or more configurations to warm. "Debug" and/or "Release".|
+|`--configuration <configuration>`|Build configuration to warm (eg. Debug, Release). Defaults to the value of `TUIST_CACHE_CONFIGURATION` environment variable.|
+|`--cache-profile <cache-profile>`|Tuist cache profile. Defaults to the value of `TUIST_CACHE_PROFILE` environment variable.|
 |`--no-install`|Skip installing any remote content (e.g. dependencies).|
 
-Source: [`mise-tasks/warm_dependency_cache.sh`](mise-tasks/warm_dependency_cache.sh)
+Source: [`mise-tasks/warm_cache.sh`](mise-tasks/warm_cache.sh)
 
 ### ▶️ Generate Workspace Graph
 

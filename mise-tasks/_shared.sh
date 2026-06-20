@@ -141,26 +141,29 @@ tuist_install() {
   return "${tuist_status}"
 }
 
-tuist_cache_warm_external() {
+tuist_cache_warm() {
   local configuration="$1"
+  local cache_profile="$2"
   local root_dir
   local log_path
   local tuist_status
 
   root_dir="$(get_root_dir)"
-  log_path="$(get_log_path tuist-cache-warm-external "${configuration}")"
+  log_path="$(get_log_path tuist-cache-warm "$configuration" "$cache_profile")"
   mkdir -p "$(dirname "${log_path}")"
   rm -f "${log_path}"
 
-  printf 'Warming external dependency cache for %s...\n' "${configuration}"
-  printf 'log_path: %s\n' "${log_path}"
+  printf 'Warming cache...\n'
+  printf 'configuration: "%s"\n' "$configuration"
+  printf 'cache_profile: "%s"\n' "$cache_profile"
+  printf 'log_path: "%s"\n' "${log_path}"
 
   set +e
 
   mise x -- tuist cache warm \
     --path "${root_dir}" \
     --configuration "${configuration}" \
-    --cache-profile only-external \
+    --cache-profile "${cache_profile}" \
     >"${log_path}" \
     2>&1
 
