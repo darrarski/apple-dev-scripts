@@ -75,6 +75,7 @@ Uses Tuist to:
 |:--|:--|
 |`--no-inspect`|Skip inspecting implicit and redundant dependencies in Tuist projects.|
 |`--no-install`|Skip installing any remote content (e.g. dependencies).|
+|`--cache-profile <cache-profile>`|Tuist cache profile. Defaults to the value of `TUIST_CACHE_PROFILE` environment variable.|
 |`--open`|Open generated workspace.|
 
 Source: [`mise-tasks/generate_workspace.sh`](mise-tasks/generate_workspace.sh)
