@@ -7,6 +7,9 @@
 #USAGE flag "--no-install" {
 #USAGE   help "Skip installing any remote content (e.g. dependencies)."
 #USAGE }
+#USAGE flag "--cache-profile <cache-profile>" {
+#USAGE   help "Tuist cache profile. Defaults to the value of TUIST_CACHE_PROFILE environment variable."
+#USAGE }
 #USAGE flag "-o --open" {
 #USAGE   help "Open generated workspace."
 #USAGE }
@@ -18,6 +21,7 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 source "${script_dir}/_shared.sh"
 
 root_dir="$(get_root_dir)"
+cache_profile="${usage_cache_profile:-$(require_env_var "TUIST_CACHE_PROFILE")}"
 
 if [[ ! "${usage_no_install:-false}" == "true" ]]; then
   tuist_install || exit "$?"
@@ -30,7 +34,7 @@ fi
 
 mise x -- tuist generate run \
   --path "$root_dir" \
-  --cache-profile only-external \
+  --cache-profile "$cache_profile" \
   --no-open
 
 if [[ "${usage_open:-false}" == "true" ]]; then

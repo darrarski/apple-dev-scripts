@@ -1,4 +1,6 @@
 [env]
+TUIST_CACHE_CONFIGURATION = "Debug"
+TUIST_CACHE_PROFILE = "only-external"
 XCODE_APP_SCHEME = "MyApp"
 IOS_SIMULATOR_NAME = "iPhone 17"
 TESTFLIGHT_GROUPS = "Internal, External"

@@ -32,9 +32,9 @@ mkdir -p "${derived_data_path}" "$(dirname "${result_bundle_path}")" "$(dirname 
 rm -rf "${result_bundle_path}"
 rm -rf "${log_path}"
 
-printf 'derived_data_path: %s\n' "${derived_data_path}"
-printf 'result_bundle_path: %s\n' "${result_bundle_path}"
-printf 'log_path: %s\n' "${log_path}"
+printf 'derived_data_path: "%s"\n' "${derived_data_path}"
+printf 'result_bundle_path: "%s"\n' "${result_bundle_path}"
+printf 'log_path: "%s"\n' "${log_path}"
 
 set +e
 
