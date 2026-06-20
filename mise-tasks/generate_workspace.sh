@@ -20,9 +20,7 @@ source "${script_dir}/_shared.sh"
 root_dir="$(get_root_dir)"
 
 if [[ ! "${usage_no_install:-false}" == "true" ]]; then
-  mise x -- tuist install \
-    --path "$root_dir" \
-    --no-update
+  tuist_install || exit "$?"
 fi
 
 if [[ ! "${usage_no_inspect:-false}" == "true" ]]; then
@@ -30,8 +28,9 @@ if [[ ! "${usage_no_inspect:-false}" == "true" ]]; then
     --path "$root_dir"
 fi
 
-mise x -- tuist generate \
+mise x -- tuist generate run \
   --path "$root_dir" \
+  --cache-profile only-external \
   --no-open
 
 if [[ "${usage_open:-false}" == "true" ]]; then

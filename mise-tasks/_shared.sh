@@ -106,6 +106,78 @@ get_log_path() {
   printf '%s/%s.log\n' "${logs_dir}" "${filename}"
 }
 
+tuist_install() {
+  local root_dir
+  local log_path
+  local tuist_status
+
+  root_dir="$(get_root_dir)"
+  log_path="$(get_log_path tuist-install)"
+  mkdir -p "$(dirname "${log_path}")"
+  rm -f "${log_path}"
+
+  printf 'Installing dependencies...\n'
+  printf 'log_path: %s\n' "${log_path}"
+
+  set +e
+
+  mise x -- tuist install \
+    --path "$root_dir" \
+    --no-update \
+    >"${log_path}" \
+    2>&1
+
+  tuist_status="$?"
+  set -e
+
+  if (( tuist_status == 0 )); then
+    printf 'Done.\n'
+    return 0
+  fi
+
+  printf 'Could not install dependencies.\n'
+  print_log_excerpt "${log_path}" | sed 's/^/    /'
+
+  return "${tuist_status}"
+}
+
+tuist_cache_warm_external() {
+  local configuration="$1"
+  local root_dir
+  local log_path
+  local tuist_status
+
+  root_dir="$(get_root_dir)"
+  log_path="$(get_log_path tuist-cache-warm-external "${configuration}")"
+  mkdir -p "$(dirname "${log_path}")"
+  rm -f "${log_path}"
+
+  printf 'Warming external dependency cache for %s...\n' "${configuration}"
+  printf 'log_path: %s\n' "${log_path}"
+
+  set +e
+
+  mise x -- tuist cache warm \
+    --path "${root_dir}" \
+    --configuration "${configuration}" \
+    --cache-profile only-external \
+    >"${log_path}" \
+    2>&1
+
+  tuist_status="$?"
+  set -e
+
+  if (( tuist_status == 0 )); then
+    printf 'Done.\n'
+    return 0
+  fi
+
+  printf 'Cache warming failed.\n'
+  print_log_excerpt "${log_path}" | sed 's/^/    /'
+
+  return "${tuist_status}"
+}
+
 xcresult_build_failed() {
   local result_bundle_path="$1"
   local build_results_json

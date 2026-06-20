@@ -77,6 +77,22 @@ Uses Tuist to:
 
 Source: [`mise-tasks/generate_workspace.sh`](mise-tasks/generate_workspace.sh)
 
+### ▶️ Warm Dependency Cache
+
+Warms Tuist binary cache for external dependencies.
+
+```sh-session
+$ mise run warm_dependency_cache Debug
+$ mise run warm_dependency_cache Debug Release
+```
+
+|Argument|Description|
+|:--|:--|
+|`<configuration>...`|One or more configurations to warm. "Debug" and/or "Release".|
+|`--no-install`|Skip installing any remote content (e.g. dependencies).|
+
+Source: [`mise-tasks/warm_dependency_cache.sh`](mise-tasks/warm_dependency_cache.sh)
+
 ### ▶️ Generate Workspace Graph
 
 Uses Tuist to generate the workspace target dependency graph.
