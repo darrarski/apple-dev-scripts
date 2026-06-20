@@ -2,7 +2,7 @@
 # shellcheck shell=bash disable=SC1091,SC2154
 #MISE description="Warms Tuist binary cache."
 #USAGE flag "-c --configuration <configuration>" {
-#USAGE   help "Build configuration to warm (eg. Debug, Release). Defaults to the value of TUIST_CACHE_CONFIGURATION environment variable." 
+#USAGE   help "Build configuration to warm (eg. Debug, Release). Defaults to the value of TUIST_CACHE_CONFIGURATION environment variable."
 #USAGE }
 #USAGE flag "-p --cache-profile <cache-profile>" {
 #USAGE   help "Tuist cache profile. Defaults to the value of TUIST_CACHE_PROFILE environment variable."
