@@ -117,7 +117,7 @@ tuist_install() {
   rm -f "${log_path}"
 
   printf 'Installing dependencies...\n'
-  printf 'log_path: %s\n' "${log_path}"
+  printf 'log_path: "%s"\n' "${log_path}"
 
   set +e
 
